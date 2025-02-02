@@ -5,7 +5,8 @@ import os
 from datetime import datetime
 import csv
 from typing import Dict, List, Optional
-import random  # הוספת ייבוא בראש הקובץ
+import random
+import json
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 from io import BytesIO
@@ -42,11 +43,26 @@ scope = [
 # קבוע עבור תיקיית גוגל דרייב
 DRIVE_FOLDER_ID = '15pwRsGUYz3FeERr4aftOHI6h2xJAT-L2'
 
-# אתחול חיבור ל-Google Sheets
+def create_service_account_json():
+    """יצירת אובייקט JSON מתוך משתני הסביבה"""
+    return {
+        "type": os.getenv("GOOGLE_SHEETS_TYPE"),
+        "project_id": os.getenv("GOOGLE_SHEETS_PROJECT_ID"),
+        "private_key_id": os.getenv("GOOGLE_SHEETS_PRIVATE_KEY_ID"),
+        "private_key": os.getenv("GOOGLE_SHEETS_PRIVATE_KEY").replace('\\n', '\n'),
+        "client_email": os.getenv("GOOGLE_SHEETS_CLIENT_EMAIL"),
+        "client_id": os.getenv("GOOGLE_SHEETS_CLIENT_ID"),
+        "auth_uri": os.getenv("GOOGLE_SHEETS_AUTH_URI"),
+        "token_uri": os.getenv("GOOGLE_SHEETS_TOKEN_URI"),
+        "auth_provider_x509_cert_url": os.getenv("GOOGLE_SHEETS_AUTH_PROVIDER_X509_CERT_URL"),
+        "client_x509_cert_url": os.getenv("GOOGLE_SHEETS_CLIENT_X509_CERT_URL")
+    }
+
 def init_google_sheets():
     """אתחול חיבור ל-Google Sheets"""
     try:
-        creds = ServiceAccountCredentials.from_json_keyfile_name('sheets.json', scope)
+        service_account_info = create_service_account_json()
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
         client = gspread.authorize(creds)
         print("Google Sheets authorization successful")
         return client
@@ -338,7 +354,7 @@ def find_file_in_drive(filename: str, drive_service) -> dict:
 def generate_route_html(route_data):
     """יצירת קובץ HTML עבור קו ספציפי"""
     try:
-        with open('index.html', 'r', encoding='utf-8') as file:
+        with open('templates/route_template.html', 'r', encoding='utf-8') as file:
             template = file.read()
         
         # החלפת הפלייסהולדרים בערכים האמיתיים
@@ -362,21 +378,16 @@ def generate_route_html(route_data):
             content = content.replace(placeholder, str(value))
         
         # שם הקובץ
-        filename = f"route_{route_data['route_name'].replace(' ', '_')}.html"
+        filename = f"templates/routes/route_{route_data['route_name'].replace(' ', '_')}.html"
         
-        # אתחול שירות הדרייב
-        drive_service = init_google_drive()
+        # יצירת תיקיית routes אם לא קיימת
+        os.makedirs('templates/routes', exist_ok=True)
         
-        # בדיקה אם הקובץ כבר קיים
-        existing_file = find_file_in_drive(filename, drive_service)
-        
-        if existing_file:
-            # עדכון הקובץ הקיים
-            update_html_file_in_drive(existing_file['id'], content, drive_service)
-            return existing_file['webViewLink']
-        else:
-            # יצירת קובץ חדש
-            return create_html_file_in_drive(filename, content, drive_service)
+        # שמירת הקובץ
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write(content)
+            
+        return filename
             
     except Exception as e:
         print(f"Error generating route HTML: {e}")
@@ -413,12 +424,7 @@ def update_link_status(map_url: str, is_used: bool):
 @app.route('/')
 def index():
     """הפניה לדף הניהול"""
-    try:
-        print("Redirecting to admin page")
-        return redirect(url_for('admin'))
-    except Exception as e:
-        print(f"Error in index route: {e}")
-        return "שגיאה בהפניה לדף הניהול. אנא נסה שוב.", 500
+    return redirect(url_for('admin'))
 
 @app.route('/admin')
 def admin():
@@ -427,7 +433,6 @@ def admin():
     try:
         # קבלת כל הקווים והקישורים
         routes = get_all_routes()
-        # אם אין קווים, נחזיר רשימה ריקה במקום שגיאה
         if routes is None:  # רק אם יש שגיאה אמיתית
             return "שגיאה בטעינת הקווים. אנא נסה שוב.", 500
             
@@ -479,10 +484,10 @@ def view_route(route_name):
         for route in routes:
             if route['route_name'] == route_name:
                 try:
-                    view_link = generate_route_html(route)
-                    return redirect(view_link)
+                    filename = generate_route_html(route)
+                    return render_template(f"routes/route_{route_name.replace(' ', '_')}.html")
                 except Exception as e:
-                    print(f"Error generating view link: {e}")
+                    print(f"Error generating route page: {e}")
                     return "שגיאה ביצירת דף הקו. אנא נסה שוב.", 500
         
         print(f"Route {route_name} not found")
@@ -703,5 +708,5 @@ def delete_route(route_name):
         return "שגיאה במחיקת הקו. אנא נסה שוב.", 500
 
 if __name__ == '__main__':
-    print("Starting Flask server...")
-    app.run(debug=True, port=5000) 
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port) 

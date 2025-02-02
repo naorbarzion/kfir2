@@ -3,10 +3,19 @@
   "builds": [
     {
       "src": "app.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.9",
+        "pip": ["--no-cache-dir"]
+      }
     }
   ],
   "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "app.py"
@@ -14,6 +23,14 @@
   ],
   "env": {
     "FLASK_APP": "app.py",
-    "FLASK_ENV": "production"
+    "FLASK_ENV": "production",
+    "PYTHONPATH": ".",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "functions": {
+    "app.py": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
   }
 } 

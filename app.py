@@ -714,6 +714,6 @@ def delete_route(route_name):
         print(f"Error in delete_route: {e}")
         return "שגיאה במחיקת הקו. אנא נסה שוב.", 500
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port) 
+# במקום זה, נייצא את האפליקציה
+app.debug = False  # חשוב! לכבות debug mode בפרודקשן
+application = app 

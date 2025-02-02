@@ -46,6 +46,25 @@ DRIVE_FOLDER_ID = '15pwRsGUYz3FeERr4aftOHI6h2xJAT-L2'
 def init_google_sheets():
     """אתחול חיבור ל-Google Sheets"""
     try:
+        # בדיקה שכל המשתנים הנדרשים קיימים
+        required_env_vars = [
+            "GOOGLE_SHEETS_TYPE",
+            "GOOGLE_SHEETS_PROJECT_ID",
+            "GOOGLE_SHEETS_PRIVATE_KEY_ID",
+            "GOOGLE_SHEETS_PRIVATE_KEY",
+            "GOOGLE_SHEETS_CLIENT_EMAIL",
+            "GOOGLE_SHEETS_CLIENT_ID",
+            "GOOGLE_SHEETS_AUTH_URI",
+            "GOOGLE_SHEETS_TOKEN_URI",
+            "GOOGLE_SHEETS_AUTH_PROVIDER_X509_CERT_URL",
+            "GOOGLE_SHEETS_CLIENT_X509_CERT_URL"
+        ]
+        
+        missing_vars = [var for var in required_env_vars if not os.getenv(var)]
+        if missing_vars:
+            print(f"Missing environment variables: {', '.join(missing_vars)}")
+            return None
+
         service_account_info = {
             "type": os.getenv("GOOGLE_SHEETS_TYPE"),
             "project_id": os.getenv("GOOGLE_SHEETS_PROJECT_ID"),
@@ -58,7 +77,10 @@ def init_google_sheets():
             "auth_provider_x509_cert_url": os.getenv("GOOGLE_SHEETS_AUTH_PROVIDER_X509_CERT_URL"),
             "client_x509_cert_url": os.getenv("GOOGLE_SHEETS_CLIENT_X509_CERT_URL")
         }
+
+        print("Service account info:", json.dumps(service_account_info, indent=2))
         
+        scope = ['https://www.googleapis.com/auth/spreadsheets']
         creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
         return gspread.authorize(creds)
     except Exception as e:
@@ -436,17 +458,17 @@ def index():
 def admin():
     """דף ניהול הקווים"""
     try:
-        if not ensure_sheets_initialized():
-            return render_template('admin.html', routes=[], error="שגיאה בהתחברות למסד הנתונים")
+        # בדיקה אם צריך לאתחל את החיבור
+        global client, sheet_routes, sheet_links
+        if client is None:
+            client = init_google_sheets()
+            if client is None:
+                return render_template('admin.html', routes=[], error="שגיאה בהתחברות למסד הנתונים")
         
-        routes = get_all_routes()
-        if routes is None:
-            routes = []
-            
-        return render_template('admin.html', routes=routes)
+        return render_template('admin.html', routes=[])
     except Exception as e:
         print(f"Error in admin page: {e}")
-        return render_template('admin.html', routes=[], error="שגיאה בטעינת הנתונים")
+        return render_template('admin.html', routes=[], error=str(e))
 
 @app.route('/route/<route_name>')
 def view_route(route_name):

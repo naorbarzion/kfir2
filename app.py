@@ -57,7 +57,8 @@ def init_google_sheets():
             "GOOGLE_SHEETS_AUTH_URI",
             "GOOGLE_SHEETS_TOKEN_URI",
             "GOOGLE_SHEETS_AUTH_PROVIDER_X509_CERT_URL",
-            "GOOGLE_SHEETS_CLIENT_X509_CERT_URL"
+            "GOOGLE_SHEETS_CLIENT_X509_CERT_URL",
+            "SPREADSHEET_ID"
         ]
         
         missing_vars = [var for var in required_env_vars if not os.getenv(var)]
@@ -87,110 +88,53 @@ def init_google_sheets():
         print(f"Error with Google Sheets authorization: {e}")
         return None
 
-# פתיחת והכנת הגיליון
 def init_spreadsheet(client):
+    """אתחול הגיליון"""
     try:
-        SPREADSHEET_ID = '1VGk-tes51YGZvJvG8wRMvy9IWaCf5gwQt57IsLfkwp0'
+        if client is None:
+            print("Client is None, cannot initialize spreadsheet")
+            return None, None
+            
+        SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
+        if not SPREADSHEET_ID:
+            print("SPREADSHEET_ID environment variable is not set")
+            return None, None
+            
+        print(f"Opening spreadsheet with ID: {SPREADSHEET_ID}")
         spreadsheet = client.open_by_key(SPREADSHEET_ID)
-        print("Main spreadsheet opened successfully")
-        
-        # הדפסת כל הגיליונות הקיימים
-        worksheets = spreadsheet.worksheets()
-        print("\nExisting worksheets:")
-        for ws in worksheets:
-            print(f"- {ws.title} (id: {ws.id})")
-        
-        # הגדרת כותרות הגיליונות
-        routes_headers = [
-            'route_name',           # שם הקו - A
-            'start_time',          # שעת התחלה - B
-            'end_time',            # שעת סיום - C
-            'pickup_time',         # זמן איסוף - D
-            'dropoff_time',        # זמן פיזור - E
-            'map_url',             # קישור למפה - F
-            'modal_title',         # כותרת המודל - G
-            'modal_content',       # תוכן המודל - H
-            'map_availability',    # זמן זמינות המפה - I
-            'status'               # סטטוס הקו - J
-        ]
-        
-        links_headers = ['map_url', 'map_name', 'is_used']
+        print("Successfully opened spreadsheet")
         
         # פתיחת גיליון הקווים
         try:
             sheet_routes = spreadsheet.worksheet('routes')
-            print("Routes worksheet found")
-            # בדיקה אם יש כותרות
-            current_headers = sheet_routes.row_values(1)
-            if not current_headers:
-                sheet_routes.append_row(routes_headers)
-                print("Added headers to routes worksheet")
-            elif current_headers != routes_headers:
-                # אם הכותרות שונות, נעדכן אותן
-                sheet_routes.delete_rows(1)
-                sheet_routes.insert_row(routes_headers, 1)
-                print("Updated headers in routes worksheet")
-        except gspread.exceptions.WorksheetNotFound:
-            print("Routes worksheet not found, trying Sheet1...")
-            # אם לא מצאנו את routes, ננסה לפתוח את Sheet1 ולשנות את שמו
-            try:
-                sheet1 = spreadsheet.get_worksheet(0)
-                if sheet1:
-                    sheet1.update_title('routes')
-                    sheet_routes = sheet1
-                    # בדיקה אם יש כותרות
-                    current_headers = sheet_routes.row_values(1)
-                    if not current_headers:
-                        sheet_routes.append_row(routes_headers)
-                        print("Added headers to routes worksheet")
-                    elif current_headers != routes_headers:
-                        # אם הכותרות שונות, נעדכן אותן
-                        sheet_routes.delete_rows(1)
-                        sheet_routes.insert_row(routes_headers, 1)
-                        print("Updated headers in routes worksheet")
-                    print("Renamed Sheet1 to routes")
-                else:
-                    print("No worksheets found, creating new routes worksheet...")
-                    sheet_routes = spreadsheet.add_worksheet('routes', 1000, 10)
-                    sheet_routes.append_row(routes_headers)
-                    print("Routes worksheet created with headers")
-            except Exception as e:
-                print(f"Error handling routes worksheet: {e}")
-                raise
-        
-        # בדיקה אם גיליון הקישורים קיים
+            print("Found routes worksheet")
+        except Exception as e:
+            print(f"Error opening routes worksheet: {e}")
+            return None, None
+            
+        # פתיחת גיליון הקישורים
         try:
             sheet_links = spreadsheet.worksheet('links')
-            print("Links worksheet found")
-            # בדיקה אם יש כותרות
-            current_headers = sheet_links.row_values(1)
-            if not current_headers:
-                sheet_links.append_row(links_headers)
-                print("Added headers to links worksheet")
-            elif current_headers != links_headers:
-                # אם הכותרות שונות, נעדכן אותן
-                sheet_links.delete_rows(1)
-                sheet_links.insert_row(links_headers, 1)
-                print("Updated headers in links worksheet")
-        except gspread.exceptions.WorksheetNotFound:
-            print("Creating new links worksheet...")
-            sheet_links = spreadsheet.add_worksheet('links', 1000, 3)
-            sheet_links.append_row(links_headers)
+            print("Found links worksheet")
+        except Exception as e:
+            print(f"Error opening links worksheet: {e}")
+            return None, None
             
-            # העתקת קישורים מהקובץ המקומי רק אם הוא קיים
-            if os.path.exists('links.csv'):
-                with open('links.csv', 'r', encoding='utf-8') as file:
-                    reader = csv.DictReader(file)
-                    for row in reader:
-                        sheet_links.append_row([row['map_url'], row['map name'], 'false'])
-                print("Links imported successfully")
-            else:
-                print("No local links.csv file found")
-        
         return sheet_routes, sheet_links
     except Exception as e:
         print(f"Error initializing spreadsheet: {e}")
-        raise
+        return None, None
+
+@app.before_first_request
+def initialize():
+    """אתחול המערכת לפני הבקשה הראשונה"""
+    global client, sheet_routes, sheet_links
+    try:
+        client = init_google_sheets()
+        if client:
+            sheet_routes, sheet_links = init_spreadsheet(client)
+    except Exception as e:
+        print(f"Error during initialization: {e}")
 
 def add_example_route():
     """הוספת קו לדוגמה"""

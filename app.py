@@ -43,32 +43,27 @@ scope = [
 # קבוע עבור תיקיית גוגל דרייב
 DRIVE_FOLDER_ID = '15pwRsGUYz3FeERr4aftOHI6h2xJAT-L2'
 
-def create_service_account_json():
-    """יצירת אובייקט JSON מתוך משתני הסביבה"""
-    return {
-        "type": os.getenv("GOOGLE_SHEETS_TYPE"),
-        "project_id": os.getenv("GOOGLE_SHEETS_PROJECT_ID"),
-        "private_key_id": os.getenv("GOOGLE_SHEETS_PRIVATE_KEY_ID"),
-        "private_key": os.getenv("GOOGLE_SHEETS_PRIVATE_KEY").replace('\\n', '\n'),
-        "client_email": os.getenv("GOOGLE_SHEETS_CLIENT_EMAIL"),
-        "client_id": os.getenv("GOOGLE_SHEETS_CLIENT_ID"),
-        "auth_uri": os.getenv("GOOGLE_SHEETS_AUTH_URI"),
-        "token_uri": os.getenv("GOOGLE_SHEETS_TOKEN_URI"),
-        "auth_provider_x509_cert_url": os.getenv("GOOGLE_SHEETS_AUTH_PROVIDER_X509_CERT_URL"),
-        "client_x509_cert_url": os.getenv("GOOGLE_SHEETS_CLIENT_X509_CERT_URL")
-    }
-
 def init_google_sheets():
     """אתחול חיבור ל-Google Sheets"""
     try:
-        service_account_info = create_service_account_json()
+        service_account_info = {
+            "type": os.getenv("GOOGLE_SHEETS_TYPE"),
+            "project_id": os.getenv("GOOGLE_SHEETS_PROJECT_ID"),
+            "private_key_id": os.getenv("GOOGLE_SHEETS_PRIVATE_KEY_ID"),
+            "private_key": os.getenv("GOOGLE_SHEETS_PRIVATE_KEY").replace('\\n', '\n'),
+            "client_email": os.getenv("GOOGLE_SHEETS_CLIENT_EMAIL"),
+            "client_id": os.getenv("GOOGLE_SHEETS_CLIENT_ID"),
+            "auth_uri": os.getenv("GOOGLE_SHEETS_AUTH_URI"),
+            "token_uri": os.getenv("GOOGLE_SHEETS_TOKEN_URI"),
+            "auth_provider_x509_cert_url": os.getenv("GOOGLE_SHEETS_AUTH_PROVIDER_X509_CERT_URL"),
+            "client_x509_cert_url": os.getenv("GOOGLE_SHEETS_CLIENT_X509_CERT_URL")
+        }
+        
         creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
-        client = gspread.authorize(creds)
-        print("Google Sheets authorization successful")
-        return client
+        return gspread.authorize(creds)
     except Exception as e:
         print(f"Error with Google Sheets authorization: {e}")
-        raise
+        return None
 
 # פתיחת והכנת הגיליון
 def init_spreadsheet(client):
@@ -425,60 +420,33 @@ def ensure_sheets_initialized():
     """וידוא שהחיבור לגיליונות מאותחל"""
     global client, sheet_routes, sheet_links
     if client is None or sheet_routes is None or sheet_links is None:
-        refresh_sheets()
+        try:
+            refresh_sheets()
+            return True
+        except Exception as e:
+            print(f"Error initializing sheets: {e}")
+            return False
 
 @app.route('/')
 def index():
-    """הפניה לדף הניהול"""
-    return redirect(url_for('admin'))
+    """דף הבית הבסיסי"""
+    return render_template('index.html')
 
 @app.route('/admin')
 def admin():
     """דף ניהול הקווים"""
     try:
-        ensure_sheets_initialized()
-        print("Admin page requested")
-        # קבלת כל הקווים והקישורים
+        if not ensure_sheets_initialized():
+            return render_template('admin.html', routes=[], error="שגיאה בהתחברות למסד הנתונים")
+        
         routes = get_all_routes()
-        if routes is None:  # רק אם יש שגיאה אמיתית
-            return "שגיאה בטעינת הקווים. אנא נסה שוב.", 500
+        if routes is None:
+            routes = []
             
-        available_links = get_available_links()
-        if available_links is None:  # רק אם יש שגיאה אמיתית
-            return "שגיאה בטעינת הקישורים. אנא נסה שוב.", 500
-        
-        # מעקב אחר קישורים בשימוש
-        used_links = set()
-        map_names = {}
-        
-        # יצירת מילון של שמות מפות
-        for link in available_links:
-            map_names[link['map_url']] = link['map_name']
-        
-        # עדכון הקווים עם שמות המפות
-        for route in routes:
-            if route.get('map_url'):
-                used_links.add(route['map_url'])
-                route['map_name'] = map_names.get(route['map_url'], 'לא ידוע')
-                route['full_map_url'] = route['map_url']
-                route['map_url'] = route['map_name']
-            else:
-                route['map_name'] = 'לא הוקצתה מפה'
-                route['full_map_url'] = ''
-                route['map_url'] = 'לא הוקצתה מפה'
-        
-        # עדכון סטטוס הקישורים
-        for link in available_links:
-            link['is_used'] = link['map_url'] in used_links
-        
-        return render_template('admin.html',
-                            routes=routes,
-                            available_links=available_links,
-                            available_links_count=len(available_links) - len(used_links),
-                            used_links_count=len(used_links))
+        return render_template('admin.html', routes=routes)
     except Exception as e:
         print(f"Error in admin page: {e}")
-        return "שגיאה בטעינת הדף. אנא נסה שוב.", 500
+        return render_template('admin.html', routes=[], error="שגיאה בטעינת הנתונים")
 
 @app.route('/route/<route_name>')
 def view_route(route_name):

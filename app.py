@@ -421,6 +421,12 @@ def update_link_status(map_url: str, is_used: bool):
     except Exception as e:
         print(f"Error updating link status: {e}")
 
+def ensure_sheets_initialized():
+    """וידוא שהחיבור לגיליונות מאותחל"""
+    global client, sheet_routes, sheet_links
+    if client is None or sheet_routes is None or sheet_links is None:
+        refresh_sheets()
+
 @app.route('/')
 def index():
     """הפניה לדף הניהול"""
@@ -429,8 +435,9 @@ def index():
 @app.route('/admin')
 def admin():
     """דף ניהול הקווים"""
-    print("Admin page requested")
     try:
+        ensure_sheets_initialized()
+        print("Admin page requested")
         # קבלת כל הקווים והקישורים
         routes = get_all_routes()
         if routes is None:  # רק אם יש שגיאה אמיתית

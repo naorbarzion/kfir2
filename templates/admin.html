@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול הסעות - פאנל ניהול</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        /* Header & Navigation */
+        .header {
+            background: white;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header-logo {
+            height: 40px;
+        }
+
+        .header-tabs {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            color: #64748b;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-tab.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .header-tab:hover:not(.active) {
+            background: #f1f5f9;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .welcome-title {
+            color: #1e40af;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .welcome-content {
+            color: #475569;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .primary-button, .secondary-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .primary-button {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .primary-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .secondary-button {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .secondary-button:hover {
+            background: #e2e8f0;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin: 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .routes-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .routes-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: right;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .routes-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.3s ease;
+        }
+
+        .routes-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* Action Buttons */
+        .action-buttons-cell {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .view-button, .edit-button, .delete-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: white;
+        }
+
+        .view-button {
+            background: #3b82f6;
+        }
+
+        .view-button:hover {
+            background: #2563eb;
+        }
+
+        .edit-button {
+            background: #10b981;
+        }
+
+        .edit-button:hover {
+            background: #059669;
+        }
+
+        .delete-button {
+            background: #ef4444;
+        }
+
+        .delete-button:hover {
+            background: #dc2626;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover {
+            color: #1e40af;
+        }
+
+        /* Guide Modal */
+        .guide-modal .modal-content {
+            max-width: 800px;
+        }
+
+        .guide-section {
+            margin-bottom: 2rem;
+        }
+
+        .guide-section h3 {
+            color: #1e40af;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .guide-step {
+            margin-bottom: 1rem;
+            padding-right: 1.5rem;
+            position: relative;
+        }
+
+        .guide-step:before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0.5rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #3b82f6;
+            border-radius: 50%;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .header-tabs {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .welcome-section, .table-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-buttons-cell {
+                flex-direction: column;
+            }
+
+            .routes-table {
+                display: block;
+            }
+
+            .routes-table thead {
+                display: none;
+            }
+
+            .routes-table tbody, .routes-table tr, .routes-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .routes-table tr {
+                margin-bottom: 1rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                padding: 1rem;
+            }
+
+            .routes-table td {
+                padding: 0.5rem 0;
+                border: none;
+                text-align: right;
+            }
+
+            .routes-table td:before {
+                content: attr(data-label);
+                font-weight: 600;
+                margin-left: 0.5rem;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1rem;
+            }
+        }
+
+        /* Links Bank Styles */
+        .links-container {
+            display: none;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 2rem;
+            padding: 2rem;
+        }
+
+        .links-container.active {
+            display: block;
+        }
+
+        .links-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .links-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1e40af;
+        }
+
+        .links-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .links-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .links-table th {
+            background: #f8fafc;
+            padding: 1.25rem;
+            text-align: right;
+            font-weight: 600;
+            color: #1e40af;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .links-table td {
+            padding: 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+            font-size: 0.95rem;
+        }
+
+        .links-table tr:hover {
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .links-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Links Status Badges */
+        .link-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .link-status.available {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .link-status.in-use {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .link-status i {
+            font-size: 1rem;
+        }
+
+        /* Copy Button */
+        .copy-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: #f1f5f9;
+            color: #1e40af;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .copy-button:active {
+            transform: translateY(0);
+        }
+
+        .support-note {
+            display: flex;
+        }
+
+        /* Form Section Styles */
+        .step-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .step-number {
+            background: #3b82f6;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .step-header h3 {
+            color: #1e40af;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .info-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-section i {
+            color: #3b82f6;
+            font-size: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #1e293b;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .input-group .hint {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .step-section {
+                padding: 1rem;
+            }
+            
+            .step-header {
+                margin-bottom: 1rem;
+            }
+            
+            .info-section {
+                flex-direction: column;
+            }
+            
+            .info-section i {
+                margin-top: 0;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <img src="https://tracer.co.il/wp-content/uploads/elementor/thumbs/Logo-H-p8d906f0bmrgobnn9uwquzibery89mtbvr1plpc910.png" 
+                 alt="Tracer Logo" 
+                 class="header-logo">
+            <div class="header-tabs">
+                <div class="header-tab active" onclick="switchTab('routes')">
+                    <i class="fas fa-bus ml-2"></i>
+                    ניהול קווים
+                </div>
+                <div class="header-tab" onclick="switchTab('links')">
+                    <i class="fas fa-link ml-2"></i>
+                    בנק קישורים
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4">
+        <!-- אזור ברוכים הבאים -->
+        <div class="welcome-section">
+            <h1 class="welcome-title">
+                <i class="fas fa-bus"></i>
+                ברוכים הבאים למערכת ניהול ההסעות
+            </h1>
+            <p class="welcome-content">
+                מערכת ניהול ההסעות מאפשרת לך לנהל את כל קווי ההסעות שלך במקום אחד. 
+                צור קווים חדשים, ערוך קווים קיימים, ונהל את כל המידע בקלות ובנוחות.
+            </p>
+            <div class="action-buttons">
+                <button class="primary-button" onclick="showModal()">
+                    <i class="fas fa-plus"></i>
+                    הוספת קו חדש
+                </button>
+                <button class="secondary-button" onclick="showGuide()">
+                    <i class="fas fa-book"></i>
+                    מדריך למשתמש
+                </button>
+            </div>
+        </div>
+
+        <!-- טבלת הקווים -->
+        <div id="routes-container" class="routes-table active">
+            <table class="min-w-full">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-bus ml-2"></i>שם הקו</th>
+                        <th><i class="fas fa-clock ml-2"></i>שעות פעילות</th>
+                        <th><i class="fas fa-arrow-right-arrow-left ml-2"></i>זמני איסוף ופיזור</th>
+                        <th><i class="fas fa-map ml-2"></i>מפה</th>
+                        <th><i class="fas fa-circle-check ml-2"></i>סטטוס</th>
+                        <th><i class="fas fa-gear ml-2"></i>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for route in routes %}
+                    <tr>
+                        <td data-label="שם הקו">
+                            <i class="fas fa-bus ml-2 text-blue-500"></i>
+                            {{ route.route_name }}
+                        </td>
+                        <td data-label="שעות פעילות">
+                            <i class="fas fa-clock ml-2 text-blue-500"></i>
+                            {{ route.start_time }} - {{ route.end_time }}
+                        </td>
+                        <td data-label="זמני איסוף ופיזור">
+                            <i class="fas fa-arrow-right-arrow-left ml-2 text-blue-500"></i>
+                            איסוף: {{ route.pickup_time }}, פיזור: {{ route.dropoff_time }}
+                        </td>
+                        <td data-label="מפה">
+                            <i class="fas fa-map ml-2 text-blue-500"></i>
+                            {% if route.map_name %}
+                                {{ route.map_name }}
+                            {% else %}
+                                <span class="text-gray-500">לא ידוע</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="סטטוס">
+                            {% if route.status == 'פעיל' %}
+                            <span class="status-badge status-active">
+                                <i class="fas fa-circle-check"></i>
+                                פעיל
+                            </span>
+                            {% else %}
+                            <span class="status-badge status-inactive">
+                                <i class="fas fa-circle-xmark"></i>
+                                לא פעיל
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td data-label="פעולות">
+                            <div class="action-buttons-cell">
+                                <a href="{{ url_for('view_route', route_name=route.route_name) }}" target="_blank"
+                                   class="view-button">
+                                    <i class="fas fa-eye"></i>
+                                    צפה בקו
+                                </a>
+                                <button onclick="editRoute('{{ route.route_name }}')" class="edit-button">
+                                    <i class="fas fa-edit"></i>
+                                    ערוך
+                                </button>
+                                <button onclick="deleteRoute('{{ route.route_name }}')" class="delete-button">
+                                    <i class="fas fa-trash"></i>
+                                    מחק
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- בנק הקישורים -->
+        <div id="links-container" class="links-container">
+            <div class="links-header">
+                <h2 class="text-xl font-bold text-blue-900">בנק הקישורים</h2>
+            </div>
+            
+            <div class="links-stats">
+                <div class="stat-card">
+                    <h4>קישורים זמינים</h4>
+                    <p id="available-links-count">{{ available_links_count }}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>קישורים בשימוש</h4>
+                    <p id="used-links-count">{{ used_links_count }}</p>
+                </div>
+            </div>
+
+            <table class="links-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-map-marker-alt ml-2"></i>שם המפה</th>
+                        <th><i class="fas fa-circle-check ml-2"></i>סטטוס</th>
+                        <th><i class="fas fa-gear ml-2"></i>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link in available_links %}
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-map text-blue-500"></i>
+                                {{ link.map_name }}
+                            </div>
+                        </td>
+                        <td>
+                            {% if link.is_used %}
+                            <span class="link-status in-use">
+                                <i class="fas fa-times-circle"></i>
+                                בשימוש
+                            </span>
+                            {% else %}
+                            <span class="link-status available">
+                                <i class="fas fa-check-circle"></i>
+                                פנוי
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="copy-button" onclick="copyLink('{{ link.map_url }}')">
+                                <i class="fas fa-copy"></i>
+                                העתק קישור
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="support-note">
+                <i class="fas fa-info-circle ml-2"></i>
+                לחידוש מאגר הקישורים, אנא צרו קשר עם מוקד שירות הלקוחות של Tracer
+            </div>
+        </div>
+    </main>
+
+    <div class="add-button" onclick="showModal()">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <!-- מודל הוספת קו -->
+    <div id="addRouteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-button" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2 class="text-xl font-bold text-center text-blue-900 mb-4">הוספת קו חדש</h2>
+                <p class="text-center text-gray-600 mb-6">מלא את הפרטים הבאים להוספת קו חדש למערכת</p>
+            </div>
+            <form id="addRouteForm" action="/create_route" method="POST" onsubmit="return validateForm()">
+                <!-- סקציה 1: פרטים בסיסיים -->
+                <div class="step-section">
+                    <div class="step-header">
+                        <span class="step-number">1</span>
+                        <h3>פרטים בסיסיים</h3>
+                    </div>
+                    <div class="info-section">
+                        <i class="fas fa-bus"></i>
+                        <div class="info-content">
+                            <div class="input-group">
+                                <label>שם הקו</label>
+                                <input type="text" name="route_name" required>
+                                <p class="hint">שם שיזהה את הקו במערכת</p>
+                            </div>
+                            <div class="input-group">
+                                <label>סטטוס</label>
+                                <select name="status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="פעיל">פעיל</option>
+                                    <option value="לא פעיל">לא פעיל</option>
+                                </select>
+                                <p class="hint">האם הקו פעיל כרגע</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- סקציה 2: זמני פעילות -->
+                <div class="step-section">
+                    <div class="step-header">
+                        <span class="step-number">2</span>
+                        <h3>זמני פעילות</h3>
+                    </div>
+                    <div class="info-section">
+                        <i class="fas fa-clock"></i>
+                        <div class="info-content">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="input-group">
+                                    <label>שעת התחלה</label>
+                                    <input type="time" name="start_time" required>
+                                    <p class="hint">מתי הקו מתחיל לפעול</p>
+                                </div>
+                                <div class="input-group">
+                                    <label>שעת סיום</label>
+                                    <input type="time" name="end_time" required>
+                                    <p class="hint">מתי הקו מסיים לפעול</p>
+                                </div>
+                                <div class="input-group">
+                                    <label>זמן איסוף</label>
+                                    <input type="time" name="pickup_time" required>
+                                    <p class="hint">מתי ההסעה מתחילה לאסוף</p>
+                                </div>
+                                <div class="input-group">
+                                    <label>זמן פיזור</label>
+                                    <input type="time" name="dropoff_time" required>
+                                    <p class="hint">מתי ההסעה מסיימת לפזר</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- סקציה 3: פרטי מפה -->
+                <div class="step-section">
+                    <div class="step-header">
+                        <span class="step-number">3</span>
+                        <h3>פרטי מפה</h3>
+                    </div>
+                    <div class="info-section">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <div class="info-content">
+                            <div class="input-group">
+                                <label>זמן זמינות המפה</label>
+                                <input type="text" name="map_availability">
+                                <p class="hint">מתי המפה תהיה זמינה למשתמשים (לדוגמה: "המפה תהיה זמינה בשעה 21:50 בדיוק")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- סקציה 4: הודעות ותוכן -->
+                <div class="step-section">
+                    <div class="step-header">
+                        <span class="step-number">4</span>
+                        <h3>הודעות ותוכן</h3>
+                    </div>
+                    <div class="info-section">
+                        <i class="fas fa-comment-alt"></i>
+                        <div class="info-content">
+                            <div class="input-group">
+                                <label>כותרת המודל</label>
+                                <input type="text" name="modal_title">
+                                <p class="hint">כותרת שתוצג בחלון הקופץ</p>
+                            </div>
+                            <div class="input-group">
+                                <label>תוכן המודל</label>
+                                <textarea name="modal_content" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                <p class="hint">תוכן שיוצג בחלון הקופץ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-left">
+                    <button type="button" onclick="closeModal()" class="px-6 py-2 mr-4 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">ביטול</button>
+                    <button type="submit" class="px-6 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-plus ml-2"></i>
+                        הוסף קו
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- מודל המדריך למשתמש -->
+    <div id="guideModal" class="modal guide-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-button" onclick="closeGuideModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2 class="text-xl font-bold text-center text-blue-900 mb-4">מדריך למשתמש - מערכת ניהול הסעות</h2>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3><i class="fas fa-plus-circle"></i> יצירת קו חדש</h3>
+                    <div class="guide-step">1. לחץ על כפתור "הוספת קו חדש" בראש העמוד</div>
+                    <div class="guide-step">2. מלא את כל פרטי הקו הנדרשים (שם, שעות, זמני איסוף ופיזור)</div>
+                    <div class="guide-step">3. המערכת תקצה באופן אוטומטי קישור למפה במערכת טרייסר</div>
+                    <div class="guide-step">4. לחץ על "הוסף קו" לשמירת הקו החדש</div>
+                </div>
+
+                <div class="guide-section">
+                    <h3><i class="fas fa-map-marked-alt"></i> שיוך נהג במערכת טרייסר</h3>
+                    <div class="guide-step">1. לאחר יצירת הקו, היכנס למערכת טרייסר</div>
+                    <div class="guide-step">2. מצא את הקישור לפי שם הקו שיצרת</div>
+                    <div class="guide-step">3. שייך את הנהג הרצוי לקו</div>
+                </div>
+
+                <div class="guide-section">
+                    <h3><i class="fas fa-edit"></i> עריכת קו קיים</h3>
+                    <div class="guide-step">1. מצא את הקו הרצוי בטבלה</div>
+                    <div class="guide-step">2. לחץ על כפתור "ערוך" (סמל העיפרון)</div>
+                    <div class="guide-step">3. עדכן את הפרטים הרצויים</div>
+                    <div class="guide-step">4. לחץ על "שמור שינויים" לעדכון הקו</div>
+                </div>
+
+                <div class="guide-section">
+                    <h3><i class="fas fa-eye"></i> צפייה בקו</h3>
+                    <div class="guide-step">1. לחץ על כפתור "צפה בקו" לצפייה בדף כפי שהלקוחות רואים אותו</div>
+                    <div class="guide-step">2. שתף את הקישור עם הלקוחות הרלוונטיים</div>
+                </div>
+
+                <div class="guide-section">
+                    <h3><i class="fas fa-trash"></i> מחיקת קו</h3>
+                    <div class="guide-step">1. לחץ על כפתור "מחק" (סמל פח האשפה) ליד הקו הרצוי</div>
+                    <div class="guide-step">2. אשר את המחיקה בחלון שיופיע</div>
+                    <div class="guide-step">3. הקישור ישוחרר אוטומטית חזרה למאגר הקישורים הפנויים</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            const form = document.getElementById('addRouteForm');
+            const requiredFields = ['route_name', 'start_time', 'end_time', 'pickup_time', 'dropoff_time'];
+            
+            for (const field of requiredFields) {
+                const input = form[field];
+                if (!input.value) {
+                    alert('אנא מלא את כל שדות החובה');
+                    input.focus();
+                    return false;
+                }
+            }
+            
+            // שליחת הטופס ל-server
+            form.method = 'POST';
+            // לא משנים את ה-action כדי לשמור על הפעולה הנכונה (עריכה או יצירה)
+            return true;
+        }
+
+        function showModal() {
+            const modal = document.getElementById('addRouteModal');
+            modal.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('addRouteModal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        // סגירת המודל בלחיצה מחוץ לתוכן
+        window.onclick = function(event) {
+            const modal = document.getElementById('addRouteModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // אנימציית כניסה לשורות - מופעלת מיד כשהדף נטען
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateX(0)';
+                }, 50 * index);
+            });
+            
+            // מאתחל את הטאב הראשון כפעיל
+            switchTab('routes');
+        });
+
+        function switchTab(tabName) {
+            // מסיר את הקלאס active מכל הטאבים
+            document.querySelectorAll('.header-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // מסתיר את כל הקונטיינרים
+            document.getElementById('routes-container').style.display = 'none';
+            document.getElementById('links-container').style.display = 'none';
+            
+            // מפעיל את הטאב הנבחר
+            if (tabName === 'routes') {
+                document.getElementById('routes-container').style.display = 'block';
+                document.querySelector('.header-tab:first-child').classList.add('active');
+            } else {
+                document.getElementById('links-container').style.display = 'block';
+                document.querySelector('.header-tab:last-child').classList.add('active');
+            }
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                // הודעת הצלחה
+                alert('הקישור הועתק בהצלחה!');
+            });
+        }
+
+        function editRoute(routeName) {
+            // קידוד שם הקו ל-URL
+            const encodedRouteName = encodeURIComponent(routeName);
+            
+            // נטען את פרטי הקו מהשרת
+            fetch(`/get_route/${encodedRouteName}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('שגיאה בטעינת פרטי הקו');
+                    }
+                    return response.json();
+                })
+                .then(route => {
+                    // נמלא את הטופס בפרטי הקו
+                    const form = document.getElementById('addRouteForm');
+                    form.route_name.value = route.route_name;
+                    form.pickup_time.value = route.pickup_time;
+                    form.dropoff_time.value = route.dropoff_time;
+                    form.start_time.value = route.start_time;
+                    form.end_time.value = route.end_time;
+                    form.map_availability.value = route.map_availability || '';
+                    form.modal_title.value = route.modal_title || '';
+                    form.modal_content.value = route.modal_content || '';
+                    form.status.value = route.status;
+                    
+                    // נשנה את כפתור השליחה לעריכה
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-save ml-2"></i>שמור שינויים';
+                    
+                    // נשנה את כתובת השליחה של הטופס
+                    form.action = `/edit_route/${encodedRouteName}`;
+                    
+                    // נפתח את המודל
+                    showModal();
+                })
+                .catch(error => {
+                    alert('שגיאה בטעינת פרטי הקו: ' + error.message);
+                });
+        }
+
+        function showGuide() {
+            const modal = document.getElementById('guideModal');
+            modal.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeGuideModal() {
+            const modal = document.getElementById('guideModal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function deleteRoute(routeName) {
+            if (confirm(`האם אתה בטוח שברצונך למחוק את הקו "${routeName}"?`)) {
+                fetch(`/delete_route/${encodeURIComponent(routeName)}`, {
+                    method: 'POST'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('שגיאה במחיקת הקו');
+                    }
+                    window.location.reload();
+                })
+                .catch(error => {
+                    alert('שגיאה במחיקת הקו: ' + error.message);
+                });
+            }
+        }
+    </script>
+</body>
+</html> 
